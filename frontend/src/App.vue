@@ -12,6 +12,12 @@ const mostrarLayout = computed(() => {
 </script>
 
 <template>
+  <Toaster
+    richColors
+    position="top-right"
+    :duration="6000"
+  />
+
   <div
     v-if="mostrarLayout"
     class="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white"
@@ -21,7 +27,6 @@ const mostrarLayout = computed(() => {
     <main class="lg:ml-64">
       <router-view />
     </main>
-    <Toaster richColors />
   </div>
 
   <router-view v-else />

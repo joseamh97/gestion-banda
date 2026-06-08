@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import api from "../api/axios";
 import { toast } from "vue-sonner";
 import Swal from "sweetalert2";
@@ -7,6 +7,9 @@ import Swal from "sweetalert2";
 const obras = ref([]);
 const editando = ref(false);
 const obraEditandoId = ref(null);
+const busqueda = ref("");
+const orden = ref("titulo");
+const direccion = ref("asc");
 
 const nuevaObra = ref({
   titulo: "",
@@ -88,6 +91,39 @@ const eliminarObra = async (id) => {
   }
 };
 
+const ordenarPor = (campo) => {
+  if (orden.value === campo) {
+    direccion.value = direccion.value === "asc" ? "desc" : "asc";
+  } else {
+    orden.value = campo;
+    direccion.value = "asc";
+  }
+};
+
+const obrasFiltradas = computed(() => {
+  const filtradas = obras.value.filter((o) => {
+    const texto = `
+      ${o.titulo}
+      ${o.compositor}
+      ${o.genero}
+      ${o.descripcion}
+    `.toLowerCase();
+
+    return texto.includes(busqueda.value.toLowerCase());
+  });
+
+  filtradas.sort((a, b) => {
+    const valorA = (a[orden.value] || "").toString().toLowerCase();
+    const valorB = (b[orden.value] || "").toString().toLowerCase();
+
+    return direccion.value === "asc"
+      ? valorA.localeCompare(valorB)
+      : valorB.localeCompare(valorA);
+  });
+
+  return filtradas;
+});
+
 onMounted(() => {
   cargarObras();
 });
@@ -156,26 +192,59 @@ onMounted(() => {
 
     <div class="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-slate-900">
       <div class="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-        <h2 class="text-xl font-semibold text-slate-800 dark:text-white">
-          Listado de obras
-        </h2>
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <h2 class="text-xl font-semibold text-slate-800 dark:text-white">
+            Listado de obras
+          </h2>
+          <input
+            v-model="busqueda"
+            placeholder="Buscar obra, compositor o género"
+            class="rounded-xl border px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
+          />
+        </div>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
           <thead class="bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
             <tr>
-              <th class="px-6 py-4">Título</th>
-              <th class="px-6 py-4">Compositor</th>
-              <th class="px-6 py-4">Género</th>
-              <th class="px-6 py-4">Descripción</th>
-              <th class="px-6 py-4 text-right">Acciones</th>
+              <th
+                @click="ordenarPor('titulo')"
+                class="cursor-pointer px-6 py-4 hover:text-blue-600"
+              >
+                Título
+              </th>
+
+              <th
+                @click="ordenarPor('compositor')"
+                class="cursor-pointer px-6 py-4 hover:text-blue-600"
+              >
+                Compositor
+              </th>
+
+              <th
+                @click="ordenarPor('genero')"
+                class="cursor-pointer px-6 py-4 hover:text-blue-600"
+              >
+                Género
+              </th>
+
+              <th
+                @click="ordenarPor('descripcion')"
+                class="cursor-pointer px-6 py-4 hover:text-blue-600"
+              >
+                Descripción
+              </th>
+
+              <th class="px-6 py-4 text-right">
+                Acciones
+              </th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
             <tr
-              v-for="obra in obras"
+              v-for="obra in obrasFiltradas"
               :key="obra.id"
               class="transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
@@ -214,7 +283,7 @@ onMounted(() => {
               </td>
             </tr>
 
-            <tr v-if="obras.length === 0">
+            <tr v-if="obrasFiltradas.length === 0">
               <td
                 colspan="5"
                 class="px-6 py-8 text-center text-slate-500 dark:text-slate-300"
@@ -226,5 +295,5 @@ onMounted(() => {
         </table>
       </div>
     </div>
-  </section>
+    </section>
 </template>

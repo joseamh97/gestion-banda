@@ -2,13 +2,18 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import * as XLSX from "xlsx";
-
+import { toast } from "vue-sonner";
 import api from "../api/axios";
 
 const route = useRoute();
 
 const asistencias = ref([]);
 const busqueda = ref("");
+
+const evento = ref(null);
+
+const eventoId = route.params.id;
+
 
 const cargarAsistencias = async () => {
   try {
@@ -74,9 +79,21 @@ const exportarExcel = () => {
   );
 };
 
+const cargarEvento = async () => {
+  try {
+    const response = await api.get(`/eventos/${eventoId}`);
+
+    evento.value = response.data;
+  } catch (error) {
+    toast.error("Error al cargar los datos del evento");
+  }
+};
+
 onMounted(() => {
   cargarAsistencias();
+  cargarEvento();
 });
+
 </script>
 
 <template>
@@ -85,7 +102,20 @@ onMounted(() => {
       <h1 class="text-4xl font-bold text-slate-900 dark:text-white">
         Asistencias del evento
       </h1>
+      <div
+        v-if="evento"
+        class="mt-4 rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-900"
+        >
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">
+          {{ evento.titulo }}
+        </h2>
 
+        <div class="mt-3 grid grid-cols-1 gap-2 text-sm text-slate-600 dark:text-slate-300 md:grid-cols-3">
+          <p>📅 {{ evento.fecha }}</p>
+          <p>🕒 {{ evento.hora }}</p>
+          <p>📍 {{ evento.ubicacion || "Sin ubicación" }}</p>
+        </div>
+      </div>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
         Consulta las respuestas de los músicos.
       </p>

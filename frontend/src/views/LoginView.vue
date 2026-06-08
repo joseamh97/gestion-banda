@@ -10,6 +10,13 @@ const email = ref("");
 const password = ref("");
 
 const login = async () => {
+  if (!email.value || !password.value) {
+    toast.error("Debes introducir email y contraseña", {
+      duration: 6000
+    });
+    return;
+  }
+
   try {
     const response = await api.post("/auth/login", {
       email: email.value,
@@ -22,12 +29,14 @@ const login = async () => {
     toast.success("Inicio de sesión correcto");
 
     if (response.data.usuario.rol === "admin") {
-        router.push("/dashboard");
+      router.push("/dashboard");
     } else {
-        router.push("/eventos");
+      router.push("/eventos");
     }
   } catch (error) {
-    toast.error("Credenciales incorrectas");
+    toast.error("Correo electrónico o contraseña incorrectos", {
+      duration: 6000
+    });
   }
 };
 </script>
@@ -42,7 +51,7 @@ const login = async () => {
           </h1>
 
           <p class="mt-4 text-slate-300">
-            Aplicación web para la gestión de  bandas de música.
+            Aplicación web para la gestión de bandas de música.
           </p>
         </div>
 
@@ -91,17 +100,12 @@ const login = async () => {
           </div>
 
           <button
+            type="button"
             @click="login"
             class="w-full rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
           >
             Entrar
           </button>
-        </div>
-
-        <div class="mt-8 rounded-xl bg-slate-100 p-4 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          <p class="font-semibold">Usuario de prueba:</p>
-          <p>admin@banda.com / 123456</p>
-          <p>clarinete1@banda.com / 123456</p>
         </div>
       </div>
     </div>

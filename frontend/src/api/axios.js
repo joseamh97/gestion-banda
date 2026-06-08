@@ -20,7 +20,13 @@ api.interceptors.response.use(
   },
 
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const esLogin = error.config?.url?.includes("/auth/login");
+
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !esLogin
+    ) {
       localStorage.removeItem("token");
       localStorage.removeItem("usuario");
 
